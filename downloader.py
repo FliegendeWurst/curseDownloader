@@ -30,11 +30,12 @@ class downloadUI(ttk.Frame):
         ttk.Frame.__init__(self, self.parent, padding=(6,6,14,14))
         self.grid(column=0, row=0, sticky=(N, S, E, W))
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
 
         self.root.title("Curse Pack Downloader")
 
         self.manifest_path = StringVar()
+        self.multimc_path = StringVar()
 
         chooser_container = ttk.Frame(self)
         self.chooser_text = ttk.Label(chooser_container, text="Locate modpack zip: ")
@@ -45,15 +46,26 @@ class downloadUI(ttk.Frame):
         self.chooser_button.grid(column=2, row=0, sticky=E)
         chooser_container.grid(column=0, row=0, sticky=(E,W))
         chooser_container.columnconfigure(1, weight=1)
-        download_button = ttk.Button(self, text="Download mods", command=self.go_download)
-        download_button.grid(column=0, row=1, sticky=(E,W))
+
+        chooser_multimc_container = ttk.Frame(self)
+        self.chooser_multimc_text = ttk.Label(chooser_container, text="Locate MultiMC.exe: ")
+        chooser_multimc_entry = ttk.Entry(chooser_container, textvariable=self.multimc_path)
+        self.chooser_multimc_button = ttk.Button(chooser_container, text="Browse", command=self.choose_file)
+        self.chooser_multimc_text.grid(column=0, row=1, sticky=W)
+        chooser_multimc_entry.grid(column=1, row=1, sticky=(E,W), padx=5)
+        self.chooser_multimc_button.grid(column=2, row=1, sticky=E)
+        chooser_multimc_container.grid(column=0, row=1, sticky=(E,W))
+        chooser_multimc_container.columnconfigure(1, weight=2)
+        
+        download_button = ttk.Button(self, text="Create new instance", command=self.go_download)
+        download_button.grid(column=0, row=2, sticky=(E,W))
 
         self.log_text = Text(self, state="disabled", wrap="none")
-        self.log_text.grid(column=0, row=2, sticky=(N,E,S,W))
+        self.log_text.grid(column=0, row=3, sticky=(N,E,S,W))
 
     def choose_file(self):
-        file_path = filedialog.askopenfile_name(
-                filetypes=((".zip files", "*.zip"),),
+        file_path = filedialog.askopenfilename(
+                filetypes=("any file", "*.*"),
                 initialdir=os.path.expanduser("~"),
                 parent=self)
         self.manifest_path.set(file_path)
