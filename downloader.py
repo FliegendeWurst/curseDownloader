@@ -50,7 +50,7 @@ class downloadUI(ttk.Frame):
         chooser_multimc_container = ttk.Frame(self)
         self.chooser_multimc_text = ttk.Label(chooser_container, text="Locate MultiMC.exe: ")
         chooser_multimc_entry = ttk.Entry(chooser_container, textvariable=self.multimc_path)
-        self.chooser_multimc_button = ttk.Button(chooser_container, text="Browse", command=self.choose_file)
+        self.chooser_multimc_button = ttk.Button(chooser_container, text="Browse", command=self.choose_multimc_file)
         self.chooser_multimc_text.grid(column=0, row=1, sticky=W)
         chooser_multimc_entry.grid(column=1, row=1, sticky=(E,W), padx=5)
         self.chooser_multimc_button.grid(column=2, row=1, sticky=E)
@@ -65,10 +65,17 @@ class downloadUI(ttk.Frame):
 
     def choose_file(self):
         file_path = filedialog.askopenfilename(
-                filetypes=("any file", "*.*"),
+                filetypes=(("Zip files", "*.zip"),),
                 initialdir=os.path.expanduser("~"),
                 parent=self)
         self.manifest_path.set(file_path)
+
+    def choose_multimc_file(self):
+        file_path = filedialog.askopenfilename(
+                filetypes=(("Exe files", "*.exe"),),
+                initialdir=os.path.expanduser("~"),
+                parent=self)
+        self.multimc_path.set(file_path)
 
     def go_download(self):
         t = Thread(target=self.go_download_background)
