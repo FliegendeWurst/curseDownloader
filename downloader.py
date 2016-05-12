@@ -34,69 +34,69 @@ class downloadUI(ttk.Frame):
 
         self.root.title("Curse Pack Downloader")
 
-        self.manifestPath = StringVar()
+        self.manifest_path = StringVar()
 
-        chooserContainer = ttk.Frame(self)
-        self.chooserText = ttk.Label(chooserContainer, text="Locate 'manifest.json': ")
-        chooserEntry = ttk.Entry(chooserContainer, textvariable=self.manifestPath)
-        self.chooserButton = ttk.Button(chooserContainer, text="Browse", command=self.chooseFile)
-        self.chooserText.grid(column=0, row=0, sticky=W)
-        chooserEntry.grid(column=1, row=0, sticky=(E,W), padx=5)
-        self.chooserButton.grid(column=2, row=0, sticky=E)
-        chooserContainer.grid(column=0, row=0, sticky=(E,W))
-        chooserContainer.columnconfigure(1, weight=1)
-        downloadButton = ttk.Button(self, text="Download mods", command=self.goDownload)
-        downloadButton.grid(column=0, row=1, sticky=(E,W))
+        chooser_container = ttk.Frame(self)
+        self.chooser_text = ttk.Label(chooser_container, text="Locate modpack zip: ")
+        chooser_entry = ttk.Entry(chooser_container, textvariable=self.manifest_path)
+        self.chooser_button = ttk.Button(chooser_container, text="Browse", command=self.choose_file)
+        self.chooser_text.grid(column=0, row=0, sticky=W)
+        chooser_entry.grid(column=1, row=0, sticky=(E,W), padx=5)
+        self.chooser_button.grid(column=2, row=0, sticky=E)
+        chooser_container.grid(column=0, row=0, sticky=(E,W))
+        chooser_container.columnconfigure(1, weight=1)
+        download_button = ttk.Button(self, text="Download mods", command=self.go_download)
+        download_button.grid(column=0, row=1, sticky=(E,W))
 
-        self.logText = Text(self, state="disabled", wrap="none")
-        self.logText.grid(column=0, row=2, sticky=(N,E,S,W))
+        self.log_text = Text(self, state="disabled", wrap="none")
+        self.log_text.grid(column=0, row=2, sticky=(N,E,S,W))
 
-    def chooseFile(self):
-        filePath = filedialog.askopenfilename(
-                filetypes=(("Json files", "*.json"),),
+    def choose_file(self):
+        file_path = filedialog.askopenfile_name(
+                filetypes=((".zip files", "*.zip"),),
                 initialdir=os.path.expanduser("~"),
                 parent=self)
-        self.manifestPath.set(filePath)
+        self.manifest_path.set(file_path)
 
-    def goDownload(self):
-        t = Thread(target=self.goDownloadBackground)
+    def go_download(self):
+        t = Thread(target=self.go_download_background)
         t.start()
 
-    def goDownloadBackground(self):
-        self.chooserButton.configure(state="disabled")
-        doDownload(self.manifestPath.get())
-        self.chooserButton.configure(state="enabled")
+    def go_download_background(self):
+        self.chooser_button.configure(state="disabled")
+        do_download(self.manifest_path.get())
+        self.chooser_button.configure(state="enabled")
 
-    def setOutput(self, message):
-        self.logText["state"] = "normal"
-        self.logText.insert("end", message + "\n")
-        self.logText["state"] = "disabled"
+    def set_output(self, message):
+        self.log_text["state"] = "normal"
+        self.log_text.insert("end", message + "\n")
+        self.log_text["state"] = "disabled"
 
-    def setManifest(self, fileName):
-        self.manifestPath.set(fileName)
+    def set_manifest(self, file_name):
+        self.manifest_path.set(file_name)
 
 class headlessUI():
-    def setOutput(self, message):
+    def set_output(self, message):
         pass
 
-programGui = None
+program_gui = None
 
-def doDownload(manifest):
-    manifestPath = Path(manifest)
-    targetDirPath = manifestPath.parent
+def do_download(manifest):
+    manifest_path = Path(manifest)
+    target_dir_path = manifest_path.parent
 
-    manifestText = manifestPath.open().read()
-    manifestText = manifestText.replace('\r', '').replace('\n', '')
+    manifest_text = manifest_path.open().read()
+    manifest_text = manifest_text.replace('\r', '').replace('\n', '')
 
-    manifestJson = json.loads(manifestText)
+    manifest_json = json.loads(manifest_text)
 
-    overridePath = Path(targetDirPath, manifestJson['overrides'])
-    minecraftPath = Path(targetDirPath, "minecraft")
-    if overridePath.exists():
-        shutil.move(str(overridePath), str(minecraftPath))
+    override_path = Path(target_dir_path, manifest_json['overrides'])
+    minecraft_path = Path(target_dir_path, "minecraft")
+    if override_path.exists():
+        shutil.move(str(override_path), str(minecraft_path))
 
-    downloaderDirs = appdirs.AppDirs(appname="cursePackDownloader", appauthor="portablejim")
-    cache_path = Path(downloaderDirs.user_cache_dir, "curseCache")
+    downloader_dirs = appdirs.AppDirs(appname="cursePackDownloader", appauthor="portablejim")
+    cache_path = Path(downloader_dirs.user_cache_dir, "curseCache")
 
     # Attempt to set proper portable data directory if asked for
     if args.portable:
@@ -109,30 +109,30 @@ def doDownload(manifest):
     if not cache_path.exists():
         cache_path.mkdir(parents=True)
 
-    if not minecraftPath.exists():
-        minecraftPath.mkdir()
-        modsPath = minecraftPath / "mods"
-        if not modsPath.exists():
-            modsPath.mkdir()
+    if not minecraft_path.exists():
+        minecraft_path.mkdir()
+        mods_path = minecraft_path / "mods"
+        if not mods_path.exists():
+            mods_path.mkdir()
 
     sess = requests.session()
 
     i = 1
-    iLen = len(manifestJson['files'])
+    iLen = len(manifest_json['files'])
 
     print("%d files to download" % (iLen))
-    programGui.setOutput("%d files to download" % (iLen))
+    program_gui.set_output("%d files to download" % (iLen))
 
-    for dependency in manifestJson['files']:
-        depCacheDir = cache_path / str(dependency['projectID']) / str(dependency['fileID'])
-        if depCacheDir.is_dir():
+    for dependency in manifest_json['files']:
+        dep_cache_dir = cache_path / str(dependency['projectID']) / str(dependency['fileID'])
+        if dep_cache_dir.is_dir():
             # File is cached
-            depFiles = [f for f in depCacheDir.iterdir()]
-            if len(depFiles) >= 1:
-                depFile = depFiles[0]
-                targetFile = minecraftPath / "mods" / depFile.name
-                shutil.copyfile(str(depFile), str(targetFile))
-                programGui.setOutput("[%d/%d] %s (cached)" % (i, iLen, targetFile.name))
+            dep_files = [f for f in dep_cache_dir.iterdir()]
+            if len(dep_files) >= 1:
+                dep_file = dep_files[0]
+                target_file = minecraft_path / "mods" / dep_file.name
+                shutil.copyfile(str(dep_file), str(target_file))
+                program_gui.set_output("[%d/%d] %s (cached)" % (i, iLen, target_file.name))
 
                 i += 1
 
@@ -141,44 +141,44 @@ def doDownload(manifest):
                 continue
 
         # File is not cached and needs to be downloaded
-        projectResponse = sess.get("http://minecraft.curseforge.com/mc-mods/%s" % (dependency['projectID']), stream=True)
-        projectResponse.url = projectResponse.url.replace('?cookieTest=1', '')
-        fileResponse = sess.get("%s/files/%s/download" % (projectResponse.url, dependency['fileID']), stream=True)
-        while fileResponse.is_redirect:
-            source = fileResponse
-            fileResponse = sess.get(source, stream=True)
-        filePath = Path(fileResponse.url)
-        fileName = unquote(filePath.name)
-        print("[%d/%d] %s" % (i, iLen, fileName))
-        programGui.setOutput("[%d/%d] %s" % (i, iLen, fileName))
-        with open(str(minecraftPath / "mods" / fileName), "wb") as mod:
-            mod.write(fileResponse.content)
+        project_response = sess.get("http://minecraft.curseforge.com/mc-mods/%s" % (dependency['projectID']), stream=True)
+        project_response.url = project_response.url.replace('?cookieTest=1', '')
+        file_response = sess.get("%s/files/%s/download" % (project_response.url, dependency['fileID']), stream=True)
+        while file_response.is_redirect:
+            source = file_response
+            file_response = sess.get(source, stream=True)
+        file_path = Path(file_response.url)
+        file_name = unquote(file_path.name)
+        print("[%d/%d] %s" % (i, iLen, file_name))
+        program_gui.set_output("[%d/%d] %s" % (i, iLen, file_name))
+        with open(str(minecraft_path / "mods" / file_name), "wb") as mod:
+            mod.write(file_response.content)
 
         # Try to add file to cache.
-        if not depCacheDir.exists():
-            depCacheDir.mkdir(parents=True)
-            with open(str(depCacheDir / fileName), "wb") as mod:
-                mod.write(fileResponse.content)
+        if not dep_cache_dir.exists():
+            dep_cache_dir.mkdir(parents=True)
+            with open(str(dep_cache_dir / file_name), "wb") as mod:
+                mod.write(file_response.content)
 
         i += 1
 
     # This is not available in curse-only packs
-    if 'directDownload' in manifestJson:
+    if 'directDownload' in manifest_json:
         i = 1
-        i_len = len(manifestJson['directDownload'])
-        programGui.setOutput("%d additional files to download." % i_len)
-        for download_entry in manifestJson['directDownload']:
-            if "url" not in download_entry or "filename" not in download_entry:
-                programGui.setOutput("[%d/%d] <Error>" % (i, i_len))
+        i_len = len(manifest_json['directDownload'])
+        program_gui.set_output("%d additional files to download." % i_len)
+        for download_entry in manifest_json['directDownload']:
+            if "url" not in download_entry or "file_name" not in download_entry:
+                program_gui.set_output("[%d/%d] <Error>" % (i, i_len))
                 i += 1
                 continue
             source_url = urlparse(download_entry['url'])
             download_cache_children = Path(source_url.path).parent.relative_to('/')
             download_cache_dir = cache_path / "directdownloads" / download_cache_children
-            cache_target = Path(download_cache_dir / download_entry['filename'])
+            cache_target = Path(download_cache_dir / download_entry['file_name'])
             if cache_target.exists():
                 # Cached
-                target_file = minecraftPath / "mods" / cache_target.name
+                target_file = minecraft_path / "mods" / cache_target.name
                 shutil.copyfile(str(cache_target), str(target_file))
 
                 i += 1
@@ -191,19 +191,19 @@ def doDownload(manifest):
             while file_response.is_redirect:
                 source = file_response
                 file_response = sess.get(source, stream=True)
-            programGui.setOutput("[%d/%d] %s" % (i, i_len, download_entry['filename']))
-            with open(str(minecraftPath / "mods" / download_entry['filename']), "wb") as mod:
+            program_gui.set_output("[%d/%d] %s" % (i, i_len, download_entry['file_name']))
+            with open(str(minecraft_path / "mods" / download_entry['file_name']), "wb") as mod:
                 mod.write(file_response.content)
 
             i += 1
 
 if args.gui:
-    programGui = downloadUI()
+    program_gui = downloadUI()
     if args.manifest is not None:
-        programGui.setManifest(args.manifest)
-    programGui.root.mainloop()
+        program_gui.set_manifest(args.manifest)
+    program_gui.root.mainloop()
 else:
-    programGui = headlessUI()
-    doDownload(args.manifest)
+    program_gui = headlessUI()
+    do_download(args.manifest)
 
 
