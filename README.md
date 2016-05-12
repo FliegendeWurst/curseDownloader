@@ -12,7 +12,7 @@ How to use
   2. Unzip the download. There should be a manifest.json file.
   3. Run
 
-    python3.4 /path/to/downloader.py /path/to/manifest.json
+`python3.4 /path/to/downloader.py`
 
 Screenshots (outdated)
 ----------
