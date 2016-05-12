@@ -14,3 +14,8 @@ How to use
 
     python3.4 /path/to/downloader.py /path/to/manifest.json
 
+Screenshots (outdated)
+----------
+![Windows](/screenshots/cursePackDownloader_windows.png?raw=true)
+![Mac](/screenshots/cursePackDownloader_mac.png?raw=true)
+![Linux](/screenshots/cursePackDownloader_linux.png?raw=true)
