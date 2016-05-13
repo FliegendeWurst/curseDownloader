@@ -11,7 +11,7 @@ import shutil
 from threading import Thread
 from tkinter import *
 from tkinter import ttk, filedialog
-from tempfile import TemporaryDirectory
+from tempfile import gettempdir
 from zipfile import ZipFile
 import traceback
 
@@ -101,16 +101,15 @@ class headlessUI():
 program_gui = None
 
 def unzip_modpack(modpack_path):
-    temp_dir = TemporaryDirectory()
+    temp_dir = Path(gettempdir()).joinpath(str(os.getpid()))
 
     try:
         with ZipFile(str(modpack_path), 'r') as modpack_zip_file:
-            modpack_zip_file.extractall(temp_dir.name)
+            modpack_zip_file.extractall(str(temp_dir))
     except Exception as e:
-        program_gui.set_output("Error: unzipping modpack to temp directory failed. Try again?")
         raise PermissionError("Failed to extract to temp dir")
 
-    return temp_dir, Path(temp_dir.name)
+    return temp_dir
 
 def do_download(modpack, multimc):
     if multimc != "":
@@ -125,12 +124,17 @@ def do_download(modpack, multimc):
     target_dir_path = multimc_path.parent
 
     try:
-        temp_dir, content_path = unzip_modpack(modpack_path)
+        program_gui.set_output("Unzipping download..")
+        content_path = unzip_modpack(modpack_path)
     except PermissionError:
+        program_gui.set_output("Error: unzipping modpack to temp directory failed. Try again?")
         return
 
-    #manifest_text = manifest_path.open().read()
-    #manifest_text = manifest_text.replace('\r', '').replace('\n', '')
+    manifest_text = content_path.joinpath("manifest.json").open().read()
+    manifest_text = manifest_text.replace('\r', '').replace('\n', '')
+
+    print(manifest_text)
+    input()
 
     manifest_json = json.loads(manifest_text)
 
@@ -240,6 +244,8 @@ def do_download(modpack, multimc):
                 mod.write(file_response.content)
 
             i += 1
+
+    shutil.rmtree(str(temp_dir), ignore_errors=True)
 
 if args.gui:
     program_gui = downloadUI()
