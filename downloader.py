@@ -113,8 +113,11 @@ def unzip_modpack(modpack_path):
     return temp_dir, Path(temp_dir.name)
 
 def do_download(modpack, multimc):
-    if(multimc != ""):
+    if multimc != "":
         multimc_path = Path(multimc)
+        if False == os.path.isfile(str(multimc_path.joinpath("patches/net.minecraftforge.json"))):
+            program_gui.set_output("Error: Could not find forge in instance")
+            return
     else:
         multimc_path = Path(modpack)
 
