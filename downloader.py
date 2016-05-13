@@ -3,10 +3,10 @@ from urllib.parse import urlparse, unquote
 
 import appdirs
 import argparse
-import json
+from json import loads
 from pathlib import Path
 import os
-import requests
+from requests import session
 import shutil
 from distutils.dir_util import copy_tree
 from threading import Thread
@@ -14,7 +14,6 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from tempfile import gettempdir
 from zipfile import ZipFile
-import traceback
 
 parser = argparse.ArgumentParser(description="Download Curse modpack mods")
 parser.add_argument("--manifest", help="manifest.json file from unzipped pack")
@@ -134,14 +133,14 @@ def do_download(modpack, multimc):
     manifest_text = content_path.joinpath("manifest.json").open().read()
     manifest_text = manifest_text.replace('\r', '').replace('\n', '')
 
-    manifest_json = json.loads(manifest_text)
+    manifest_json = loads(manifest_text)
 
     minecraft_path = Path(target_dir_path, "minecraft")
     override_path = minecraft_path
 
     program_gui.set_output("Copying overrides..")
     copy_tree(str(content_path.joinpath(manifest_json["overrides"])),
-                    str(minecraft_path))
+              str(minecraft_path))
 
     downloader_dirs = appdirs.AppDirs(appname="cursePackDownloader", appauthor="portablejim")
     cache_path = Path(downloader_dirs.user_cache_dir, "curseCache")
@@ -163,7 +162,7 @@ def do_download(modpack, multimc):
         if not mods_path.exists():
             mods_path.mkdir()
 
-    sess = requests.session()
+    sess = session()
 
     i = 1
     iLen = len(manifest_json['files'])
@@ -246,6 +245,8 @@ def do_download(modpack, multimc):
             i += 1
 
     shutil.rmtree(str(content_path), ignore_errors=True)
+    program_gui.set_output("Done!")
+    return
 
 if args.gui:
     program_gui = downloadUI()
