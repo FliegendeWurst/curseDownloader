@@ -8,6 +8,7 @@ from pathlib import Path
 import os
 import requests
 import shutil
+from distutils.dir_util import copy_tree
 from threading import Thread
 from tkinter import *
 from tkinter import ttk, filedialog
@@ -121,7 +122,7 @@ def do_download(modpack, multimc):
         multimc_path = Path(modpack)
 
     modpack_path = Path(modpack)
-    target_dir_path = multimc_path.parent
+    target_dir_path = multimc_path
 
     try:
         program_gui.set_output("Unzipping download..")
@@ -133,15 +134,14 @@ def do_download(modpack, multimc):
     manifest_text = content_path.joinpath("manifest.json").open().read()
     manifest_text = manifest_text.replace('\r', '').replace('\n', '')
 
-    print(manifest_text)
-    input()
-
     manifest_json = json.loads(manifest_text)
 
-    override_path = Path(target_dir_path, manifest_json['overrides'])
     minecraft_path = Path(target_dir_path, "minecraft")
-    if override_path.exists():
-        shutil.move(str(override_path), str(minecraft_path))
+    override_path = minecraft_path
+
+    program_gui.set_output("Copying overrides..")
+    copy_tree(str(content_path.joinpath(manifest_json["overrides"])),
+                    str(minecraft_path))
 
     downloader_dirs = appdirs.AppDirs(appname="cursePackDownloader", appauthor="portablejim")
     cache_path = Path(downloader_dirs.user_cache_dir, "curseCache")
@@ -245,7 +245,7 @@ def do_download(modpack, multimc):
 
             i += 1
 
-    shutil.rmtree(str(temp_dir), ignore_errors=True)
+    shutil.rmtree(str(content_path), ignore_errors=True)
 
 if args.gui:
     program_gui = downloadUI()
