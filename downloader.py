@@ -48,16 +48,16 @@ class downloadUI(ttk.Frame):
         chooser_container.columnconfigure(1, weight=1)
 
         chooser_multimc_container = ttk.Frame(self)
-        self.chooser_multimc_text = ttk.Label(chooser_container, text="Locate MultiMC.exe: ")
+        self.chooser_multimc_text = ttk.Label(chooser_container, text="Locate MultiMC instance: ")
         chooser_multimc_entry = ttk.Entry(chooser_container, textvariable=self.multimc_path)
-        self.chooser_multimc_button = ttk.Button(chooser_container, text="Browse", command=self.choose_multimc_file)
+        self.chooser_multimc_button = ttk.Button(chooser_container, text="Browse", command=self.choose_multimc_path)
         self.chooser_multimc_text.grid(column=0, row=1, sticky=W)
         chooser_multimc_entry.grid(column=1, row=1, sticky=(E,W), padx=5)
         self.chooser_multimc_button.grid(column=2, row=1, sticky=E)
         chooser_multimc_container.grid(column=0, row=1, sticky=(E,W))
         chooser_multimc_container.columnconfigure(1, weight=2)
         
-        download_button = ttk.Button(self, text="Create new instance", command=self.go_download)
+        download_button = ttk.Button(self, text="Add mods to instance", command=self.go_download)
         download_button.grid(column=0, row=2, sticky=(E,W))
 
         self.log_text = Text(self, state="disabled", wrap="none")
@@ -70,11 +70,8 @@ class downloadUI(ttk.Frame):
                 parent=self)
         self.manifest_path.set(file_path)
 
-    def choose_multimc_file(self):
-        file_path = filedialog.askopenfilename(
-                filetypes=(("Exe files", "*.exe"),),
-                initialdir=os.path.expanduser("~"),
-                parent=self)
+    def choose_multimc_path(self):
+        file_path = filedialog.askdirectory(parent=self)
         self.multimc_path.set(file_path)
 
     def go_download(self):
@@ -83,7 +80,7 @@ class downloadUI(ttk.Frame):
 
     def go_download_background(self):
         self.chooser_button.configure(state="disabled")
-        do_download(self.manifest_path.get())
+        do_download(self.manifest_path.get(), self.multimc_path.get())
         self.chooser_button.configure(state="enabled")
 
     def set_output(self, message):
@@ -100,7 +97,9 @@ class headlessUI():
 
 program_gui = None
 
-def do_download(manifest):
+def do_download(manifest, multimc):
+    multimc_path = Path(multimc)
+
     manifest_path = Path(manifest)
     target_dir_path = manifest_path.parent
 
