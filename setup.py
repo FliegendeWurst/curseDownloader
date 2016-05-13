@@ -11,7 +11,7 @@ if sys.platform == "win32":
 
 setup(
     name="cursePackDownloader",
-    version="0.2",
+    version="0.3",
     description="Download extra mods from Curse-hosted Minecraft modpacks",
     executables=[Executable("downloader.py", targetName=targetName)],
     install_requires=[
