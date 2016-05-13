@@ -11,6 +11,9 @@ import shutil
 from threading import Thread
 from tkinter import *
 from tkinter import ttk, filedialog
+from tempfile import TemporaryDirectory
+from zipfile import ZipFile
+import traceback
 
 parser = argparse.ArgumentParser(description="Download Curse modpack mods")
 parser.add_argument("--manifest", help="manifest.json file from unzipped pack")
@@ -48,7 +51,7 @@ class downloadUI(ttk.Frame):
         chooser_container.columnconfigure(1, weight=1)
 
         chooser_multimc_container = ttk.Frame(self)
-        self.chooser_multimc_text = ttk.Label(chooser_container, text="Locate MultiMC instance: ")
+        self.chooser_multimc_text = ttk.Label(chooser_container, text="Locate MultiMC instance (optional): ")
         chooser_multimc_entry = ttk.Entry(chooser_container, textvariable=self.multimc_path)
         self.chooser_multimc_button = ttk.Button(chooser_container, text="Browse", command=self.choose_multimc_path)
         self.chooser_multimc_text.grid(column=0, row=1, sticky=W)
@@ -57,7 +60,7 @@ class downloadUI(ttk.Frame):
         chooser_multimc_container.grid(column=0, row=1, sticky=(E,W))
         chooser_multimc_container.columnconfigure(1, weight=2)
         
-        download_button = ttk.Button(self, text="Add mods to instance", command=self.go_download)
+        download_button = ttk.Button(self, text="Start Download", command=self.go_download)
         download_button.grid(column=0, row=2, sticky=(E,W))
 
         self.log_text = Text(self, state="disabled", wrap="none")
@@ -97,14 +100,34 @@ class headlessUI():
 
 program_gui = None
 
-def do_download(manifest, multimc):
-    multimc_path = Path(multimc)
+def unzip_modpack(modpack_path):
+    temp_dir = TemporaryDirectory()
 
-    manifest_path = Path(manifest)
-    target_dir_path = manifest_path.parent
+    try:
+        with ZipFile(str(modpack_path), 'r') as modpack_zip_file:
+            modpack_zip_file.extractall(temp_dir.name)
+    except Exception as e:
+        program_gui.set_output("Error: unzipping modpack to temp directory failed. Try again?")
+        raise PermissionError("Failed to extract to temp dir")
 
-    manifest_text = manifest_path.open().read()
-    manifest_text = manifest_text.replace('\r', '').replace('\n', '')
+    return temp_dir, Path(temp_dir.name)
+
+def do_download(modpack, multimc):
+    if(multimc != ""):
+        multimc_path = Path(multimc)
+    else:
+        multimc_path = Path(modpack)
+
+    modpack_path = Path(modpack)
+    target_dir_path = multimc_path.parent
+
+    try:
+        temp_dir, content_path = unzip_modpack(modpack_path)
+    except PermissionError:
+        return
+
+    #manifest_text = manifest_path.open().read()
+    #manifest_text = manifest_text.replace('\r', '').replace('\n', '')
 
     manifest_json = json.loads(manifest_text)
 
