@@ -90,6 +90,7 @@ class downloadUI(ttk.Frame):
         self.log_text["state"] = "normal"
         self.log_text.insert("end", message + "\n")
         self.log_text["state"] = "disabled"
+        self.log_text.see(END)
 
     def set_manifest(self, file_name):
         self.manifest_path.set(file_name)
@@ -118,7 +119,7 @@ def do_download(modpack, multimc):
             program_gui.set_output("Error: Could not find forge in instance")
             return
     else:
-        multimc_path = Path(modpack)
+        multimc_path = Path(modpack).parent
 
     modpack_path = Path(modpack)
     target_dir_path = multimc_path
